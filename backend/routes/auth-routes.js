@@ -1,14 +1,16 @@
 import express from "express"
 
-import { signup, login,logout } from "../controllers/auth-controller.js"
+import { signup, login,logout,getMe } from "../controllers/auth-controller.js"
+
+import { AuthMiddleWare } from "../middleWare/auth_middleware.js"
 
 const authrouter = express.Router()
 
-authrouter.get("/signup",signup)
+authrouter.post("/signup",signup)
 
-authrouter.get("/login",login)
+authrouter.post("/login",login)
 
-
-authrouter.get("/logout",logout)
+authrouter.post("/logout",logout)
+authrouter.get("/getme",AuthMiddleWare,getMe)
 
 export default authrouter

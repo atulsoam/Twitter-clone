@@ -1,5 +1,6 @@
 import express from "express"
 import dotenv from "dotenv"
+import cookieParser from "cookie-parser"
 
 import authrouter from "./routes/auth-routes.js"
 import connectMongodb from "./db/connect_mongo_db.js"
@@ -8,6 +9,9 @@ dotenv.config();
 
 const app = express()
 
+app.use(express.json())
+
+app.use(cookieParser())
 
 app.use("/api/auth",authrouter)
 
