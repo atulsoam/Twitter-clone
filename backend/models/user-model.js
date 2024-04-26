@@ -49,10 +49,17 @@ const UserSchema = new mongoose.Schema({
     link:{
         type:String,
         default:""
-    }
+    },
+    likedPost:[
+        {
+            type:mongoose.Schema.Types.ObjectId,
+            ref:"Post",
+            default:[]
+        }
+    ]
 }, { timestamps: true })
 
 
-const User = mongoose.model("User",UserSchema)
+const User = mongoose.model("user",UserSchema)
 
 export default User;
