@@ -5,10 +5,10 @@ import { createPost, likeunlikePost,commentPost,deletPost,getAllPost,getLikedPos
 const postroutes = express.Router();
 
 postroutes.post("/create",AuthMiddleWare, createPost)
-postroutes.post("/allpost",AuthMiddleWare, getAllPost)
-postroutes.post("/following",AuthMiddleWare, getFollowingPost)
-postroutes.post("/Liked/:id",AuthMiddleWare, getLikedPost)
-postroutes.post("/userpost/:username",AuthMiddleWare, getuserPsot)
+postroutes.get("/allpost",AuthMiddleWare, getAllPost)
+postroutes.get("/following",AuthMiddleWare, getFollowingPost)
+postroutes.get("/Liked/:id",AuthMiddleWare, getLikedPost)
+postroutes.get("/userpost/:username",AuthMiddleWare, getuserPsot)
 
 postroutes.post("/like/:id",AuthMiddleWare, likeunlikePost)
 postroutes.post("/comment/:id",AuthMiddleWare, commentPost)
