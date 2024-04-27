@@ -1,46 +1,52 @@
 import Post from "./Post";
 import PostSkeleton from "../skeletons/PostSkeleton";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 
-const Posts = ({ feedType }) => {
-
+const Posts = ({ feedType, username, userId }) => {
 	const getPostEndpoint = () => {
 		switch (feedType) {
 			case "forYou":
-				return "api/post/allpost"
+				return "/api/post/allpost";
 			case "following":
-				return "api/post/following"
+				return "/api/post/following";
+			case "posts":
+				return `/api/post/userpost/${username}`;
+			case "likes":
+				return `/api/post/Liked/${userId}`;
 			default:
-				return "api/post/allpost"
+				return "/api/posts/all";
 		}
-	}
+	};
 
-	const Post_endpoint = getPostEndpoint()
-	console.log(Post_endpoint, 19);
-	const { data: POSTS, isLoading, refetch, isRefetching } = useQuery({
+	const POST_ENDPOINT = getPostEndpoint();
+
+	const {
+		data: posts,
+		isLoading,
+		refetch,
+		isRefetching,
+	} = useQuery({
 		queryKey: ["posts"],
 		queryFn: async () => {
 			try {
-				console.log(24);
-				const res = await fetch(Post_endpoint)
+				const res = await fetch(POST_ENDPOINT);
+				const data = await res.json();
 
-				const data = await res.json()
-				console.log(data, 27);
 				if (!res.ok) {
-					throw new Error(data.error || "Something went wrong")
+					throw new Error(data.error || "Something went wrong");
 				}
-				return data
+
+				return data;
 			} catch (error) {
-				throw new Error(error)
+				throw new Error(error);
 			}
-
-		}
-	})
-
+		},
+	});
 	useEffect(() => {
-		refetch()
-	}, [feedType, refetch])
+		refetch();
+	}, [feedType, refetch, username]);
+
 	return (
 		<>
 			{(isLoading || isRefetching) && (
@@ -50,10 +56,12 @@ const Posts = ({ feedType }) => {
 					<PostSkeleton />
 				</div>
 			)}
-			{!isLoading && !isRefetching && POSTS?.length === 0 && <p className='text-center my-4'>No posts in this tab. Switch 👻</p>}
-			{!isLoading  && !isRefetching && POSTS && (
+			{!isLoading && !isRefetching && posts?.length === 0 && (
+				<p className='text-center my-4'>No posts in this tab. Switch 👻</p>
+			)}
+			{!isLoading && !isRefetching && posts && (
 				<div>
-					{POSTS.map((post) => (
+					{posts.map((post) => (
 						<Post key={post._id} post={post} />
 					))}
 				</div>

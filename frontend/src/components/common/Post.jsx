@@ -8,7 +8,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { toast } from "react-hot-toast"
 import LoadingSpinner from "./LoadingSpinner"
-import { formatPostDate } from "../../../../backend/utils/date";
+import { formatPostDate } from "../../utils/date";
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
@@ -57,7 +57,6 @@ const Post = ({ post }) => {
 			}
 		},
 		onSuccess: (updatedLikes) => {
-			console.log(updatedLikes,59);
 			queeryclient.setQueryData(["posts"], (oldData) => {
 				return oldData.map((p) => {
 					if (p._id === post._id) {
