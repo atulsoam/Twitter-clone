@@ -2,6 +2,8 @@ import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { toast } from "react-hot-toast"
+import LoadingSpinner from "./LoadingSpinner";
+import useFollow from "../../hooks/useFollow";
 
 const RightPanel = () => {
 	const isLoading = false;
@@ -24,11 +26,16 @@ const RightPanel = () => {
 		}
 	})
 
+	const { follow, isPending :followPending } = useFollow();
 	if (Suggesteduser?.length === 0){
 		return (
 			<div className="md:w-64 w-0"></div>
 		)
 	}
+	// const HandleSubmit = async (id)=>{
+	// 	console.log(id,36);
+	// 	await followUser(id)
+	// }
 
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
@@ -67,9 +74,12 @@ const RightPanel = () => {
 								<div>
 									<button
 										className='btn bg-white text-black hover:bg-white hover:opacity-90 rounded-full btn-sm'
-										onClick={(e) => e.preventDefault()}
+										onClick={(e)=>{
+											e.preventDefault()
+											follow(user._id)
+										}}
 									>
-										Follow
+										{followPending? <LoadingSpinner size="sm"/> :"Follow"}
 									</button>
 								</div>
 							</Link>
