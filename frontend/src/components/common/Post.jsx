@@ -8,6 +8,7 @@ import { Link } from "react-router-dom";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
 import { toast } from "react-hot-toast"
 import LoadingSpinner from "./LoadingSpinner"
+import { formatPostDate } from "../../../../backend/utils/date";
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
@@ -71,10 +72,50 @@ const Post = ({ post }) => {
 		},
 
 	})
+	const { mutate: CommentPost, isPending: Commentpending } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`api/post/comment/${post._id}`, {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json"
+					},
+					body: JSON.stringify({ text:comment })
+				})
+
+				const data = await res.json()
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong")
+				}
+				return data
+			} catch (error) {
+				throw new Error(error.message)
+			}
+		},
+		onSuccess: (updatedComments) => {
+			console.log(post.coments,95);
+			toast.success("Comment posted succesfully!! ")
+			setComment("")
+			queeryclient.setQueryData(["posts"], (oldData) => {
+				return oldData.map((c) => {
+					console.log(post.coments._id,100);
+					if (c._id === post._id) {
+						console.log({coments: updatedComments},102);
+						return { ...c, coments: updatedComments };
+					}
+					return c;
+				});
+			});
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+
+	})
 
 	const isMyPost = authUser._id === post.user._id;
 
-	const formattedDate = "1h";
+	const formattedDate = formatPostDate(post.createdAt);
 
 	const isCommenting = false;
 
@@ -84,6 +125,8 @@ const Post = ({ post }) => {
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
+		if (Commentpending) return
+		CommentPost()
 	};
 
 	const handleLikePost = () => {

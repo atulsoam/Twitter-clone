@@ -119,9 +119,9 @@ export const commentPost = async (req, res) => {
         post.coments.push(comment)
 
         post.save()
-
+        const updatedComments = post.coments
         res.status(201).json(
-            comment
+            updatedComments
         )
     } catch (err) {
         console.log(err.message);
