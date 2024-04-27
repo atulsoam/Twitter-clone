@@ -1,9 +1,34 @@
 import { Link } from "react-router-dom";
 import RightPanelSkeleton from "../skeletons/RightPanelSkeleton";
-// import { USERS_FOR_RIGHT_PANEL } from "../../utils/db/dummy";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { toast } from "react-hot-toast"
 
 const RightPanel = () => {
 	const isLoading = false;
+	const {data:Suggesteduser,isPending} = useQuery({
+		queryKey:["suggestedUser"],
+		queryFn: async ()=>{
+			try {
+				const res = await fetch(`api/users/suggested`)
+
+				const data = await res.json()
+
+				if (!res.ok){
+					throw new Error(data.error || "Something went wrong")
+				}
+
+				return data
+			} catch (error) {
+				throw new Error(error)
+			}
+		}
+	})
+
+	if (Suggesteduser?.length === 0){
+		return (
+			<div className="md:w-64 w-0"></div>
+		)
+	}
 
 	return (
 		<div className='hidden lg:block my-4 mx-2'>
@@ -11,16 +36,16 @@ const RightPanel = () => {
 				<p className='font-bold'>Who to follow</p>
 				<div className='flex flex-col gap-4'>
 					{/* item */}
-					{/* {isLoading && ( */}
+					{isPending && (
 						<>
 							<RightPanelSkeleton />
 							<RightPanelSkeleton />
 							<RightPanelSkeleton />
 							<RightPanelSkeleton />
 						</>
-					{/* )} */}
-					{/* {!isLoading &&
-						USERS_FOR_RIGHT_PANEL?.map((user) => (
+					 )} 
+					{!isPending &&
+						Suggesteduser?.map((user) => (
 							<Link
 								to={`/profile/${user.username}`}
 								className='flex items-center justify-between gap-4'
@@ -48,7 +73,7 @@ const RightPanel = () => {
 									</button>
 								</div>
 							</Link>
-						 ))} */}
+						 ))}
 				</div>
 			</div>
 		</div>
