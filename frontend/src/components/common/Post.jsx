@@ -5,25 +5,56 @@ import { FaRegBookmark } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { toast } from "react-hot-toast"
+import LoadingSpinner from "./LoadingSpinner"
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
 	const postOwner = post.user;
 	const isLiked = false;
+	const queeryclient = useQueryClient()
 
-	const isMyPost = true;
+	const { data } = useQuery({ queryKey: ["authuser"] })
+
+	const { mutate: deletPost, isPending } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`api/post/${post._id}`,{
+					method:"DELETE"
+				})
+
+				const data = await res.json()
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong")
+				}
+				return data
+			} catch (error) {
+				throw new Error(error.message)
+			}
+		},
+		onSuccess:()=>{
+			toast.success("Post deleted succesfully!! ")
+			queeryclient.invalidateQueries({queryKey:["posts"]})
+		}
+
+	})
+
+	const isMyPost = data._id === post.user._id;
 
 	const formattedDate = "1h";
 
 	const isCommenting = false;
 
-	const handleDeletePost = () => {};
+	const handleDeletePost = () => {
+		deletPost()
+	};
 
 	const handlePostComment = (e) => {
 		e.preventDefault();
 	};
 
-	const handleLikePost = () => {};
+	const handleLikePost = () => { };
 
 	return (
 		<>
@@ -45,7 +76,10 @@ const Post = ({ post }) => {
 						</span>
 						{isMyPost && (
 							<span className='flex justify-end flex-1'>
-								<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+								{!isPending &&
+									<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
+}
+								{isPending && <LoadingSpinner size="sm"/>}
 							</span>
 						)}
 					</div>
@@ -135,9 +169,8 @@ const Post = ({ post }) => {
 								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
 
 								<span
-									className={`text-sm text-slate-500 group-hover:text-pink-500 ${
-										isLiked ? "text-pink-500" : ""
-									}`}
+									className={`text-sm text-slate-500 group-hover:text-pink-500 ${isLiked ? "text-pink-500" : ""
+										}`}
 								>
 									{post.likes.length}
 								</span>
