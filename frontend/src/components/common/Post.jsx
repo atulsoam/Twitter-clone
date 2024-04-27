@@ -11,17 +11,17 @@ import LoadingSpinner from "./LoadingSpinner"
 
 const Post = ({ post }) => {
 	const [comment, setComment] = useState("");
+	const { data: authUser } = useQuery({ queryKey: ["authuser"] })
 	const postOwner = post.user;
-	const isLiked = false;
+	const isLiked = post.likes.includes(authUser._id);
 	const queeryclient = useQueryClient()
 
-	const { data } = useQuery({ queryKey: ["authuser"] })
 
 	const { mutate: deletPost, isPending } = useMutation({
 		mutationFn: async () => {
 			try {
-				const res = await fetch(`api/post/${post._id}`,{
-					method:"DELETE"
+				const res = await fetch(`api/post/${post._id}`, {
+					method: "DELETE"
 				})
 
 				const data = await res.json()
@@ -33,14 +33,46 @@ const Post = ({ post }) => {
 				throw new Error(error.message)
 			}
 		},
-		onSuccess:()=>{
+		onSuccess: () => {
 			toast.success("Post deleted succesfully!! ")
-			queeryclient.invalidateQueries({queryKey:["posts"]})
+			queeryclient.invalidateQueries({ queryKey: ["posts"] })
 		}
 
 	})
+	const { mutate: LikePost, isPending: LikePending } = useMutation({
+		mutationFn: async () => {
+			try {
+				const res = await fetch(`api/post/like/${post._id}`, {
+					method: "POST"
+				})
 
-	const isMyPost = data._id === post.user._id;
+				const data = await res.json()
+				if (!res.ok) {
+					throw new Error(data.error || "Something went wrong")
+				}
+				return data
+			} catch (error) {
+				throw new Error(error.message)
+			}
+		},
+		onSuccess: (updatedLikes) => {
+			console.log(updatedLikes,59);
+			queeryclient.setQueryData(["posts"], (oldData) => {
+				return oldData.map((p) => {
+					if (p._id === post._id) {
+						return { ...p, likes: updatedLikes };
+					}
+					return p;
+				});
+			});
+		},
+		onError: (error) => {
+			toast.error(error.message);
+		},
+
+	})
+
+	const isMyPost = authUser._id === post.user._id;
 
 	const formattedDate = "1h";
 
@@ -54,7 +86,10 @@ const Post = ({ post }) => {
 		e.preventDefault();
 	};
 
-	const handleLikePost = () => { };
+	const handleLikePost = () => {
+		if (LikePending) return
+		LikePost()
+	};
 
 	return (
 		<>
@@ -78,8 +113,8 @@ const Post = ({ post }) => {
 							<span className='flex justify-end flex-1'>
 								{!isPending &&
 									<FaTrash className='cursor-pointer hover:text-red-500' onClick={handleDeletePost} />
-}
-								{isPending && <LoadingSpinner size="sm"/>}
+								}
+								{isPending && <LoadingSpinner size="sm" />}
 							</span>
 						)}
 					</div>
@@ -163,10 +198,11 @@ const Post = ({ post }) => {
 								<span className='text-sm text-slate-500 group-hover:text-green-500'>0</span>
 							</div>
 							<div className='flex gap-1 items-center group cursor-pointer' onClick={handleLikePost}>
-								{!isLiked && (
+								{LikePending && <LoadingSpinner size="sm" />}
+								{!isLiked && - !LikePending && (
 									<FaRegHeart className='w-4 h-4 cursor-pointer text-slate-500 group-hover:text-pink-500' />
 								)}
-								{isLiked && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
+								{isLiked && !LikePending && <FaRegHeart className='w-4 h-4 cursor-pointer text-pink-500 ' />}
 
 								<span
 									className={`text-sm text-slate-500 group-hover:text-pink-500 ${isLiked ? "text-pink-500" : ""
